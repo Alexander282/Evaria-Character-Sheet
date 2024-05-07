@@ -1,0 +1,44 @@
+{
+    "1": {
+        "Type": "Stats",
+        "Label": "Stats",
+        "Content": {
+            "1": {
+                "Name": "Strength",
+                "Base": 16,
+                "Racial": 4,
+                "Other": 2,
+                "Total": 22,
+                "Modifier": 6,
+                "Secondary": {
+                    "1": {
+                        "Name": "Heavy Weapons",
+                        "Base": 16,
+                        "Racial": 4,
+                        "Other": 2,
+                        "Total": 22,
+                        "Modifier": 6
+                    }
+                }
+            },
+            "2": {
+                "Name": "Vitality",
+                "Base": 10,
+                "Racial": 4,
+                "Other": 2,
+                "Total": 16,
+                "Modifier": 3,
+                "Secondary": {}
+            },
+            "3": {
+                "Name": "Dexterity",
+                "Base": 10,
+                "Racial": 4,
+                "Other": 2,
+                "Total": 16,
+                "Modifier": 3,
+                "Secondary": {}
+            }
+        }
+    }
+}
