@@ -35,7 +35,9 @@ dpg.create_context()  # Creates context, necessary for DPG
 
 # Usage - Ran throughout the program's work.
 # Functions - define functions to be used later here.
-def save_file():  # Overwrites the file
+def save_file(sender, app_data):  # Overwrites the file
+    active_data.name = app_data['file_name']
+    active_data.file_path = app_data['file_path_name']
     file = open(active_data.get_all('file_path'), mode='w')
     json.dump(active_data.get_all('data'), file, ensure_ascii=False, indent=4)
     file.close()
@@ -44,7 +46,8 @@ def save_file():  # Overwrites the file
 def load_file(sender, app_data):
     print(app_data)
     if active_data.name != '':
-        save_file()
+        info = {'file_path_name': active_data.get_all("file_path"), 'file_name': active_data.get_all('name')}
+        save_file(sender, info)
 
     dpg.delete_item("Primary_Tab_Bar", children_only=True)
     dpg.add_tab_button(label="+", tag="Add_Tab_Button", parent="Primary_Tab_Bar", callback=new_tab, trailing=True)
@@ -54,13 +57,10 @@ def load_file(sender, app_data):
     active_data.data = json.load(file)
     file.close()
     open_file(active_data.get_all("data"))
-    print(active_data.get_all('name'))
-
 
 
 def open_file(file_data):  # Reads the current active file and creates tabs because of it. file_data is that info
     for tab_key in file_data.keys():
-        # print(tab_key)
         load_tab(file_data, tab_key)
 
 
@@ -83,11 +83,11 @@ def create_new_tab():  # Creates a tab, assigning a value to it
     if tab_type != "Custom":
         path_tag = str(file_tab_key) + "-" + tab_type
         dpg.add_tab(label=tab_name, parent="Primary_Tab_Bar", tag=path_tag)
-        active_data.data[file_tab_key] = {"Name": tab_name}
+        active_data.data[file_tab_key] = {"Label": tab_name, "Type": tab_type, "Content": {}}
     else:
         path_tag = str(file_tab_key) + "-" + tab_type
         dpg.add_tab(label=tab_name, parent="Primary_Tab_Bar", tag=path_tag)
-        active_data.data[file_tab_key] = {"Name": tab_name}
+        active_data.data[file_tab_key] = {"Label": tab_name, "Type": tab_type, "Content": {}}
     generate_tab_content(path_tag, {})
     dpg.configure_item("New_Tab_Creator", show=False)
 
@@ -144,7 +144,7 @@ def generate_tab_content(path_tag, current_tab_data):
                             dpg.add_text(default_value=current_cell_data, tag=item_tag, )
 
 
-def calculate_total(sender, app_data, user_data):
+def calculate_total(sender):
     tag_template = dpg.get_item_alias(sender).rsplit("-", 1)[0]
     path = dpg.get_item_alias(sender).split("-")[:-1]
     row_attributes = active_data.get_value_by_path(path)  # there's got to be a better way, but I don't know it yet...
@@ -167,7 +167,6 @@ def calculate_total(sender, app_data, user_data):
             active_data.set_value_in_location(location, int(sum_value / 2 - 5))
 
 
-
 def cancel_load(sender, app_data):
     print('Cancel was clicked.')
     print("Sender: ", sender)
@@ -175,21 +174,31 @@ def cancel_load(sender, app_data):
     print(active_data.get_all("data"))
 
 
-def new_tab(sender, app_data, user_data):  # Opens the new tab creator window
+def new_tab():  # Opens the new tab creator window
     dpg.configure_item("New_Tab_Creator", show=True)
 
 
 dpg.add_value_registry(tag="Value_Storage")
 
-with dpg.file_dialog(directory_selector=False, show=False, callback=load_file, cancel_callback=cancel_load, tag="file_dialog_id", width=700, height=400, default_filename=active_data.get_all("name")):
+# with dpg.window(tag="Rename_Window"):
+#    dpg.add_input_text(tag='New_Name')
+#    dpg.add_button(tag='Close_Rename', label='Cancel', callback=hide_rename_view)
+#    dpg.add_button(tag='Submit_Rename', label='Cancel')
+
+with dpg.file_dialog(directory_selector=False, show=False, callback=save_file, cancel_callback=cancel_load, tag="save_file_explorer", width=700, height=400,
+                     default_filename=active_data.get_all("name")):
+    dpg.add_file_extension(".json", color=(128, 255, 128, 255), custom_text="[JSON]")
+
+with dpg.file_dialog(directory_selector=False, show=False, callback=load_file, cancel_callback=cancel_load, tag="load_file_explorer", width=700, height=400,
+                     default_filename=active_data.get_all("name")):
     dpg.add_file_extension(".json", color=(128, 255, 128, 255), custom_text="[JSON]")
 
 with dpg.window(tag="Primary_Window", no_close=False):  # main window
     with dpg.menu_bar():
         with dpg.menu(label="File"):
             dpg.add_menu_item(label="New")
-            dpg.add_menu_item(label="Open", callback=lambda: dpg.show_item("file_dialog_id"))
-            dpg.add_menu_item(label="Save", callback=save_file)
+            dpg.add_menu_item(label="Open", callback=lambda: dpg.show_item("load_file_explorer"))
+            dpg.add_menu_item(label="Save", callback=lambda: dpg.show_item("save_file_explorer"))
     with dpg.tab_bar(tag="Primary_Tab_Bar"):
         dpg.add_tab_button(label="+", tag="Add_Tab_Button", callback=new_tab, trailing=True)
 
@@ -198,8 +207,8 @@ with dpg.window(label="New Tab Creator", show=False, tag="New_Tab_Creator", moda
     dpg.add_input_text(default_value="Enter custom tab here", tag="New_Tab_Input", parent="New_Tab_Creator")
     dpg.add_button(label="Enter", callback=create_new_tab)
     # read_file(active_data.getInfo("data"))
-    # dpg.add_button(label="File", callback=lambda: dpg.show_item("file_dialog_id"))
-# dpg.show_item("file_dialog_id")
+    # dpg.add_button(label="File", callback=lambda: dpg.show_item("load_file_explorer"))
+# dpg.show_item("load_file_explorer")
 dpg.create_viewport(title="Crow's Character Creator", width=800, height=600)
 dpg.setup_dearpygui()
 dpg.show_viewport()
