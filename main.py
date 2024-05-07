@@ -105,7 +105,7 @@ def create_secondary_stats_table(current_tab_data, root_tag, table_path_tag):
                     dpg.add_input_int(default_value=current_cell_data, callback=calculate_total, tag=item_tag, width=-1)
                 elif attribute == "Name":  # secondary stats need to be done on their own because they're a different case
                     current_cell_data = current_tab_data[main_stat_key][attribute]
-                    dpg.add_input_text(default_value=current_cell_data, tag=item_tag, width=-1)
+                    dpg.add_input_text(default_value=current_cell_data, callback=edit_name, tag=item_tag, width=-1)
                 elif attribute == "Base":
                     target_source = item_tag.rsplit('-', 3)[0] + '-Total'
                     dpg.add_text(source=target_source, tag=item_tag)
@@ -114,6 +114,8 @@ def create_secondary_stats_table(current_tab_data, root_tag, table_path_tag):
                 else:  # secondary stats need to be done on their own because they're a different case
                     current_cell_data = current_tab_data[main_stat_key][attribute]
                     dpg.add_text(default_value=current_cell_data, tag=item_tag)
+            with dpg.table_row(parent=table_path_tag):
+                dpg.add_button(label='+', width=-1, callback=create_new_stat)
 
 
 def generate_tab_content(path_tag, current_tab_data):
@@ -142,6 +144,16 @@ def generate_tab_content(path_tag, current_tab_data):
                             dpg.add_text(tag=item_tag, default_value=current_cell_data)  # source=item_tag + "Value")
                         else:  # secondary stats need to be done on their own because they're a different case
                             dpg.add_text(default_value=current_cell_data, tag=item_tag, )
+            with dpg.table_row():
+                dpg.add_button(label='+', width=-1, callback=create_new_stat)
+
+
+def create_new_stat(sender, app_data):
+    pass
+
+def edit_name(sender, app_data):
+    path = dpg.get_item_alias(sender).split("-")
+    active_data.set_value_in_location(path, app_data)
 
 
 def calculate_total(sender):
@@ -153,12 +165,10 @@ def calculate_total(sender):
     print(active_data.get_all("data"))
     for attribute in row_attributes:
         location = path + [attribute]
-
         if attribute not in unique_cases:
             attribute_value = int(dpg.get_value(tag_template + "-" + attribute))
             sum_value += attribute_value
             active_data.set_value_in_location(location, attribute_value)
-
         elif attribute == "Total":
             dpg.set_value(tag_template + "-" + attribute, sum_value)
             active_data.set_value_in_location(location, sum_value)
