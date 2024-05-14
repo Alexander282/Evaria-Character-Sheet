@@ -123,32 +123,41 @@ def generate_tab_content(path_tag, current_tab_data):
     tab_type = path_tag.split('-')[-1]
     if tab_type == "Stats":
         allowed_attributes = ["Base", "Racial", "Other", "Total", "Modifier"]  # ensures that no other things appear or are used
-        with dpg.table(header_row=True, tag=(path_tag + "-Table"), parent=path_tag, row_background=True, resizable=True):
-            dpg.add_table_column(label="Stat", width=100)  # creates the Header row
-            for attribute in allowed_attributes:
-                dpg.add_table_column(label=attribute, width=100)
-            unique_cases = ["Name", "Secondary", "Total", "Modifier"]
-            for main_stat_key in current_tab_data:  # go through each stat key (stored as numbers)
-                with dpg.table_row():
-                    for attribute in current_tab_data[main_stat_key]:  # go through each attribute (name, Base value, Secondary stats, etc.)
-                        item_tag = (root + "-Content-" + main_stat_key + "-" + attribute)
-                        current_cell_data = current_tab_data[main_stat_key][attribute]
-                        if attribute not in unique_cases:  # most unique cases aren't actively editable
-                            dpg.add_input_int(default_value=current_cell_data, callback=calculate_total, tag=item_tag, width=-1)
-                        elif attribute == "Name":  # secondary stats need to be done on their own because they're a different case
-                            dpg.add_input_text(default_value=current_cell_data, tag=item_tag, width=-1)
-                        elif attribute == "Secondary":
-                            create_secondary_stats_table(current_tab_data[main_stat_key]["Secondary"], item_tag + "-", (path_tag + "-Table"))
-                        elif attribute in ["Total", "Modifier"]:
-                            # dpg.add_int_value(parent="Value_Storage", tag=item_tag + "Value", default_value=current_cell_data)
-                            dpg.add_text(tag=item_tag, default_value=current_cell_data)  # source=item_tag + "Value")
-                        else:  # secondary stats need to be done on their own because they're a different case
-                            dpg.add_text(default_value=current_cell_data, tag=item_tag, )
-            with dpg.table_row():
-                dpg.add_button(label='+', width=-1, callback=create_new_stat)
+        # TO-DO: change from table to groups and windows, since tables would make this harder than it should be.
+        with dpg.child_window(border=True, tag=(path_tag + "-window"), parent=path_tag):
+            with dpg.group(horizontal=True, horizontal_spacing=100):
+                dpg.add_text(default_value="Stat")  # creates the Header row
+                for attribute in allowed_attributes:
+                    dpg.add_text(default_value=attribute)
+            create_stat_window(current_tab_data, root + "-Content-")
+
 
 
 def create_new_stat(sender, app_data):
+    # remove create new button
+    # create a stat row
+    # recreate button
+    pass
+
+def create_stat_window(current_tab_data, item_tag):
+    # create a child window in the tab/primary stat's window
+    for main_stat_key in current_tab_data:  # go through each stat key (stored as numbers)
+        with dpg.child_window(border=True, height=100):
+            group_tag = (item_tag + "-" + str(main_stat_key) + "-group")
+            dpg.add_group(horizontal=True, tag=group_tag)
+            for attribute in current_tab_data[main_stat_key]:  # go through each attribute (name, Base value, Secondary stats, etc.)
+                new_item_tag = (item_tag + main_stat_key + "-" + attribute)
+                current_cell_data = current_tab_data[main_stat_key][attribute]
+                if attribute == "Name":  # secondary stats need to be done on their own because they're a different case
+                    dpg.add_input_text(default_value=current_cell_data, tag=new_item_tag, width=100, parent=group_tag)
+                elif attribute == "Secondary":
+                    create_stat_window(current_tab_data[main_stat_key]["Secondary"], new_item_tag + "-")
+                elif attribute in ["Total", "Modifier"]:
+                    # dpg.add_int_value(parent="Value_Storage", tag=item_tag + "Value", default_value=current_cell_data)
+                    dpg.add_text(tag=new_item_tag, default_value=current_cell_data, parent=group_tag)  # source=item_tag + "Value")
+                else:  # secondary stats need to be done on their own because they're a different case
+                    dpg.add_input_int(default_value=current_cell_data, callback=calculate_total, tag=new_item_tag, width=100, parent=group_tag)
+            dpg.add_button(label='+', width=-1, callback=create_new_stat)
     pass
 
 def edit_name(sender, app_data):
@@ -173,8 +182,13 @@ def calculate_total(sender):
             dpg.set_value(tag_template + "-" + attribute, sum_value)
             active_data.set_value_in_location(location, sum_value)
         elif attribute == "Modifier":
-            dpg.set_value((tag_template + "-" + attribute), int(sum_value / 2 - 5))
-            active_data.set_value_in_location(location, int(sum_value / 2 - 5))
+            modifier_value = int(sum_value / 2 - 5)
+            if modifier_value < 0:
+                modifier_text = str(modifier_value)
+            else:
+                modifier_text = "+" + str(modifier_value)
+            dpg.set_value((tag_template + "-" + attribute), modifier_text)
+            active_data.set_value_in_location(location, modifier_text)
 
 
 def cancel_load(sender, app_data):
