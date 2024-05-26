@@ -9,15 +9,16 @@
                 "Racial": 4,
                 "Other": 2,
                 "Total": 22,
-                "Modifier": 6,
+                "Modifier": "+6",
                 "Secondary": {
                     "1": {
-                        "Name": "Heavy Weapo",
+                        "Name": "Heavy Weapons",
                         "Base": 16,
                         "Racial": 4,
                         "Other": 2,
                         "Total": 22,
-                        "Modifier": 6
+                        "Modifier": "+6",
+                        "Secondary": {}
                     }
                 }
             },
@@ -27,7 +28,7 @@
                 "Racial": 4,
                 "Other": 2,
                 "Total": 16,
-                "Modifier": 3,
+                "Modifier": "+3",
                 "Secondary": {}
             },
             "3": {
@@ -36,8 +37,27 @@
                 "Racial": 4,
                 "Other": 2,
                 "Total": 16,
-                "Modifier": 3,
-                "Secondary": {}
+                "Modifier": "+3",
+                "Secondary": {
+                    "1": {
+                        "Name": "Stealth",
+                        "Base": 16,
+                        "Racial": 4,
+                        "Other": 2,
+                        "Total": 22,
+                        "Modifier": "+6",
+                        "Secondary": {}
+                    },
+                    "2": {
+                        "Name": "Acrobatics",
+                        "Base": 16,
+                        "Racial": 4,
+                        "Other": 2,
+                        "Total": 22,
+                        "Modifier": "+6",
+                        "Secondary": {}
+                    }
+                }
             }
         }
     }
